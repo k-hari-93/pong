@@ -32,23 +32,23 @@ def main():
     l_paddle = Image("paddle.png")
     r_paddle = Image("paddle.png")
 
-    paddle_group = pygame.sprite.Group()
-
-    paddle_group.add(l_paddle)
-    paddle_group.add(r_paddle)
-
-    l_paddle_x,l_paddle_y = 10,10
-    r_paddle_x,r_paddle_y = 780,10
+    l_paddle_x,l_paddle_y = 10,250
+    r_paddle_x,r_paddle_y = 780,250
     ball_x,ball_y = 100,100
 
     move_paddle_r = 0
     move_paddle_l = 0
 
-    score = 0
+    score_pc = 0
+    score_player = 0
 
     speed = 1
     ball_x_speed = 1
     ball_y_speed = 1
+
+    font = pygame.font.SysFont("Times New Roman",20,False,False)
+
+    ball_x,ball_y = setup_screen(screen,font,ball,l_paddle,r_paddle,score_pc,score_player)
 
     done = False
     while not done:
@@ -58,23 +58,23 @@ def main():
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
-                    move_paddle_r = -3
+                    move_paddle_r = -6
                 if event.key == pygame.K_DOWN:
-                    move_paddle_r = 3
+                    move_paddle_r = 6
             if event.type == pygame.KEYUP :
                 if event.key == pygame.K_UP or event.key == pygame.K_DOWN:
                     move_paddle_r = 0
 
-        screen.fill(0x000000)
+        screen.fill(0x000000,(0,90,800,600))
+        blit_scores(screen,font,score_pc,score_player)
 
         ball_y = ball_y+ball_y_speed*2
         ball_x = ball_x+ball_x_speed*2
 
         if ball_y > 580:
             ball_y_speed = ball_y_speed *-1
-        if ball_y < 10:
+        if ball_y < 100:
             ball_y_speed = ball_y_speed *-1
-
 
         if l_paddle_y + 30 < ball_y:
             move_paddle_l = speed*3
@@ -83,9 +83,10 @@ def main():
         else:
             move_paddle_l = 0
 
-        if 10 <= r_paddle_y + move_paddle_r <= 513:
+        if 100 <= r_paddle_y + move_paddle_r <= 513:
             r_paddle_y += move_paddle_r
-        if 10 <= l_paddle_y + move_paddle_l <= 513:
+
+        if 100 <= l_paddle_y + move_paddle_l <= 513:
             l_paddle_y += move_paddle_l
 
         l_paddle.render(screen,l_paddle_x,l_paddle_y)
@@ -95,19 +96,42 @@ def main():
         clock.tick(60)
         pygame.display.flip()
 
+        if 770<ball_x<790 and r_paddle_y < ball_y and ball_y+64<r_paddle_y+128:
+            ball_x_speed = -1*ball_x_speed
 
-        l_paddle.rect = l_paddle.image.get_rect(center = (l_paddle_x,l_paddle_y))
-        r_paddle.rect = r_paddle.image.get_rect(center = (r_paddle_x,r_paddle_y))
-        ball.rect = ball.image.get_rect(center = (ball_x,ball_y))
+        elif 0<ball_x<20 and l_paddle_y < ball_y and ball_y+64<l_paddle_y+128:
+            ball_x_speed = -1*ball_x_speed
 
-        if pygame.sprite.spritecollideany(ball,paddle_group):
-            if abs(r_paddle_x-ball_x)<3:
-                ball_x_speed = -1*ball_x_speed
-                continue
-            if abs(l_paddle_x-ball_x)<3:
-                ball_x_speed = -1*ball_x_speed
+        if ball_x >= 800:
+            score_pc += 1
+            ball_x,ball_y = setup_screen(screen,font,ball,l_paddle,r_paddle,score_pc,score_player)
+
+        if ball_x <= 0 :
+            score_player += 1
+            ball_x,ball_y = setup_screen(screen,font,ball,l_paddle,r_paddle,score_pc,score_player)
 
     return 0
+
+def blit_scores(screen,font,score_pc,score_player):
+    text = font.render(str(score_pc),True,(200,0,100))
+    screen.blit(text,(157,60))
+    text2 = font.render(str(score_player),True,(200,0,100))
+    screen.blit(text2,(530,60))
+
+def setup_screen(screen,font,ball,l_paddle,r_paddle,score_pc,score_player):
+    x,y = 800/2-32/2, 600/2-50/2
+    screen.fill((165,200,207),[0,0,800,100])
+    screen.fill((0,0,0),[0,90,800,600])
+    blit_scores(screen,font,score_pc,score_player)
+    ball.render(screen,x,y)
+    l_paddle.render(screen,10,250)
+    r_paddle.render(screen,780,250)
+    name = font.render("PLAYER",True,(200,0,100))
+    pc = font.render("PC",True,(200,0,100))
+    screen.blit(pc,(150,10))
+    screen.blit(name,(500,10))
+    pygame.display.flip()
+    return x,y
 
 if __name__ == "__main__":
     sys.exit(main())
