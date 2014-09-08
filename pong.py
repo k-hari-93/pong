@@ -1,23 +1,94 @@
 import pygame
 import time
 import os
+import sys
 
-size = (1000,600)
+class Image(pygame.sprite.Sprite):
+    def __init__(self, image):
+        super(Image,self).__init__()
+        self.image = pygame.image.load(image)
+        self.rect = self.image.get_rect()
 
-pos_x = 1366/2 - size[0]/2
-pos_y = 768 - 700
+    def render(self,screen,x,y):
+        screen.blit(self.image,(x,y))
 
-os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (pos_x,pos_y)
-os.environ['SDL_VIDEO_CENTERED'] = '0'
+def main():
 
-screen = pygame.display.set_mode(size)
-pygame.display.set_caption("Keyboard")
+    pygame.init()
+    size = (800,600)
 
-image1 = pygame.image.load("ball.png")
-image2 = pygame.image.load("paddle.png")
+    pos_x = 1366/2 - size[0]/2
+    pos_y = 768 - 700
 
-screen.blit(image1,(100,100))
-screen.blit(image2,(200,200))
+    os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (pos_x,pos_y)
+    os.environ['SDL_VIDEO_CENTERED'] = '0'
 
-pygame.display.flip()
-time.sleep(15)
+    screen = pygame.display.set_mode(size)
+    pygame.display.set_caption("Pong")
+
+    clock = pygame.time.Clock()
+
+    ball = Image("ball.png")
+    l_paddle = Image("paddle.png")
+    r_paddle = Image("paddle.png")
+
+    l_paddle_x,l_paddle_y = 10,10
+    r_paddle_x,r_paddle_y = 780,10
+    ball_x,ball_y = 100,100
+
+    move_paddle_r = 0
+    move_paddle_l = 0
+
+    score = 0
+
+    speed = 1
+    ball_speed = 1
+
+    done = False
+    while not done:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                done = True
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    move_paddle_r = -3
+                if event.key == pygame.K_DOWN:
+                    move_paddle_r = 3
+            if event.type == pygame.KEYUP :
+                if event.key == pygame.K_UP or event.key == pygame.K_DOWN:
+                    move_paddle_r = 0
+
+
+        screen.fill(0x000000)
+
+        ball_y = ball_y+ball_speed*2
+        if ball_y > 600:
+            ball_speed = ball_speed *-1
+        if ball_y < 0:
+            ball_speed = ball_speed *-1
+
+        if l_paddle_y + 30 < ball_y:
+            move_paddle_l = speed*3
+        elif  l_paddle_y + 30 > ball_y:
+            move_paddle_l = -(speed*3)
+        else:
+            move_paddle_l = 0
+
+        if 10 <= r_paddle_y + move_paddle_r <= 513:
+            r_paddle_y += move_paddle_r
+        if 10 <= l_paddle_y + move_paddle_l <= 513:
+            l_paddle_y += move_paddle_l
+
+        l_paddle.render(screen,l_paddle_x,l_paddle_y)
+        r_paddle.render(screen,r_paddle_x,r_paddle_y)
+        ball.render(screen,ball_x,ball_y)
+
+        clock.tick(60)
+        pygame.display.flip()
+
+
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())
