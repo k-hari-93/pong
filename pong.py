@@ -32,6 +32,11 @@ def main():
     l_paddle = Image("paddle.png")
     r_paddle = Image("paddle.png")
 
+    paddle_group = pygame.sprite.Group()
+
+    paddle_group.add(l_paddle)
+    paddle_group.add(r_paddle)
+
     l_paddle_x,l_paddle_y = 10,10
     r_paddle_x,r_paddle_y = 780,10
     ball_x,ball_y = 100,100
@@ -42,7 +47,8 @@ def main():
     score = 0
 
     speed = 1
-    ball_speed = 1
+    ball_x_speed = 1
+    ball_y_speed = 1
 
     done = False
     while not done:
@@ -59,14 +65,16 @@ def main():
                 if event.key == pygame.K_UP or event.key == pygame.K_DOWN:
                     move_paddle_r = 0
 
-
         screen.fill(0x000000)
 
-        ball_y = ball_y+ball_speed*2
-        if ball_y > 600:
-            ball_speed = ball_speed *-1
-        if ball_y < 0:
-            ball_speed = ball_speed *-1
+        ball_y = ball_y+ball_y_speed*2
+        ball_x = ball_x+ball_x_speed*2
+
+        if ball_y > 580:
+            ball_y_speed = ball_y_speed *-1
+        if ball_y < 10:
+            ball_y_speed = ball_y_speed *-1
+
 
         if l_paddle_y + 30 < ball_y:
             move_paddle_l = speed*3
@@ -87,6 +95,17 @@ def main():
         clock.tick(60)
         pygame.display.flip()
 
+
+        l_paddle.rect = l_paddle.image.get_rect(center = (l_paddle_x,l_paddle_y))
+        r_paddle.rect = r_paddle.image.get_rect(center = (r_paddle_x,r_paddle_y))
+        ball.rect = ball.image.get_rect(center = (ball_x,ball_y))
+
+        if pygame.sprite.spritecollideany(ball,paddle_group):
+            if abs(r_paddle_x-ball_x)<3:
+                ball_x_speed = -1*ball_x_speed
+                continue
+            if abs(l_paddle_x-ball_x)<3:
+                ball_x_speed = -1*ball_x_speed
 
     return 0
 
