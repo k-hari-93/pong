@@ -41,7 +41,6 @@ class SFX():
         self.out = pygame.mixer.Sound("out.ogg")
         self.gloom = pygame.mixer.Sound("gloom.wav")
         self.cheer = pygame.mixer.Sound("cheer.wav")
-        self.intro = pygame.mixer.Sound("intro.wav")
 
 class Image(pygame.sprite.Sprite):
     def __init__(self, image,x,y):
@@ -244,7 +243,6 @@ def game_over(screen,winner,flag):
 
     main()
 def display_start_screen(screen):
-    sfx.intro.play(loops = -1)
     screen.fill((0,0,0))
     screen.blit(welcome,(250,20))
     screen.blit(difficulty,(20,300))
@@ -280,7 +278,6 @@ def display_start_screen(screen):
                     l_paddle.dy = 8
 
                 done = True
-                sfx.intro.stop()
 
 if __name__ == "__main__":
     main()

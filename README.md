@@ -1,4 +1,4 @@
-A Pong Game in Python Using Pygame
+A Pong Clone in Python Using Pygame
 ==================================
 
 Requirements
@@ -15,4 +15,3 @@ Note
 ----
 1. The reflections are not QUITE perfect(NOT by accident).
 2. Other than that, please comment if you find areas where I can improve.
-
