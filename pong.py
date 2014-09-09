@@ -2,53 +2,62 @@ import pygame
 import time
 import os
 import sys
+import random
+
+
+pygame.init()
+size = (800,600)
+
+pos_x = 1366/2 - size[0]/2
+pos_y = 768 - 700
+
+os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (pos_x,pos_y)
+os.environ['SDL_VIDEO_CENTERED'] = '0'
+
+screen = pygame.display.set_mode(size)
+pygame.display.set_caption("Pong")
+
+font = pygame.font.SysFont("Press Start 2P",30,False,False)
+
+clock = pygame.time.Clock()
+
+
+class SFX():
+    def __init__(self):
+        self.contact = pygame.mixer.Sound("contact.wav")
+        self.out = pygame.mixer.Sound("out.ogg")
+        self.gloom = pygame.mixer.Sound("gloom.wav")
+        self.gloat = pygame.mixer.Sound("gloat.wav")
+        self.cheer = pygame.mixer.Sound("cheer.wav")
 
 class Image(pygame.sprite.Sprite):
-    def __init__(self, image):
+    def __init__(self, image,x,y):
         super(Image,self).__init__()
+        self.x = x
+        self.y = y
+        self.dx = 0
+        self.dy = 0
+        self.x_speed = 1
+        self.y_speed = 1
         self.image = pygame.image.load(image)
         self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
 
-    def render(self,screen,x,y):
-        screen.blit(self.image,(x,y))
+    def render(self):
+        screen.blit(self.image,(self.x+self.dx,self.y+self.dy))
+
+
+ball = Image("ball.png",0,0)
+l_paddle = Image("paddle.png",10,250)
+r_paddle = Image("paddle.png",780,250)
+sfx = SFX()
 
 def main():
-
-    pygame.init()
-    size = (800,600)
-
-    pos_x = 1366/2 - size[0]/2
-    pos_y = 768 - 700
-
-    os.environ['SDL_VIDEO_WINDOW_POS'] = '%i,%i' % (pos_x,pos_y)
-    os.environ['SDL_VIDEO_CENTERED'] = '0'
-
-    screen = pygame.display.set_mode(size)
-    pygame.display.set_caption("Pong")
-
-    clock = pygame.time.Clock()
-
-    ball = Image("ball.png")
-    l_paddle = Image("paddle.png")
-    r_paddle = Image("paddle.png")
-
-    l_paddle_x,l_paddle_y = 10,250
-    r_paddle_x,r_paddle_y = 780,250
-    ball_x,ball_y = 100,100
-
-    move_paddle_r = 0
-    move_paddle_l = 0
 
     score_pc = 0
     score_player = 0
 
-    speed = 1
-    ball_x_speed = 1
-    ball_y_speed = 1
-
-    font = pygame.font.SysFont("Times New Roman",20,False,False)
-
-    ball_x,ball_y = setup_screen(screen,font,ball,l_paddle,r_paddle,score_pc,score_player)
+    setup_screen(score_pc,score_player)
 
     done = False
     while not done:
@@ -58,80 +67,104 @@ def main():
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
-                    move_paddle_r = -6
+                    r_paddle.dy = -6
                 if event.key == pygame.K_DOWN:
-                    move_paddle_r = 6
+                    r_paddle.dy = 6
             if event.type == pygame.KEYUP :
                 if event.key == pygame.K_UP or event.key == pygame.K_DOWN:
-                    move_paddle_r = 0
+                    r_paddle.dy = 0
 
         screen.fill(0x000000,(0,90,800,600))
-        blit_scores(screen,font,score_pc,score_player)
+        blit_scores(score_pc,score_player)
 
-        ball_y = ball_y+ball_y_speed*2
-        ball_x = ball_x+ball_x_speed*2
+        if ball.y > 580:
+            sfx.contact.play(loops=0,maxtime=0)
+            time.sleep(0.04)
+            ball.y_speed = ball.y_speed *-1
+        if ball.y < 100:
+            sfx.contact.play(loops=0,maxtime=0)
+            time.sleep(0.04)
+            ball.y_speed = ball.y_speed *-1
 
-        if ball_y > 580:
-            ball_y_speed = ball_y_speed *-1
-        if ball_y < 100:
-            ball_y_speed = ball_y_speed *-1
-
-        if l_paddle_y + 30 < ball_y:
-            move_paddle_l = speed*3
-        elif  l_paddle_y + 30 > ball_y:
-            move_paddle_l = -(speed*3)
+        if l_paddle.y + 30 < ball.y:
+            l_paddle.dy = l_paddle.y_speed*3
+        elif  l_paddle.y + 30 > ball.y:
+            l_paddle.dy = -(l_paddle.y_speed*3)
         else:
-            move_paddle_l = 0
+            l_paddle.dy = 0
 
-        if 100 <= r_paddle_y + move_paddle_r <= 513:
-            r_paddle_y += move_paddle_r
+        if 100 <= r_paddle.y + r_paddle.dy <= 513:
+            r_paddle.y += r_paddle.dy
 
-        if 100 <= l_paddle_y + move_paddle_l <= 513:
-            l_paddle_y += move_paddle_l
+        if 100 <= l_paddle.y + l_paddle.dy <= 513:
+            l_paddle.y += l_paddle.dy
 
-        l_paddle.render(screen,l_paddle_x,l_paddle_y)
-        r_paddle.render(screen,r_paddle_x,r_paddle_y)
-        ball.render(screen,ball_x,ball_y)
+        l_paddle.render()
+        r_paddle.render()
+        ball.render()
 
-        clock.tick(60)
+        clock.tick(100)
         pygame.display.flip()
 
-        if 770<ball_x<790 and r_paddle_y < ball_y and ball_y+64<r_paddle_y+128:
-            ball_x_speed = -1*ball_x_speed
+        x2,y2 = ball.x - l_paddle.x, ball.y - l_paddle.y
+        x1,y1 = ball.x - r_paddle.x, ball.y - r_paddle.y
 
-        elif 0<ball_x<20 and l_paddle_y < ball_y and ball_y+64<l_paddle_y+128:
-            ball_x_speed = -1*ball_x_speed
 
-        if ball_x >= 800:
+        if ball.x > r_paddle.x:
+            sfx.out.play(loops=0,maxtime=0)
             score_pc += 1
-            ball_x,ball_y = setup_screen(screen,font,ball,l_paddle,r_paddle,score_pc,score_player)
+            setup_screen(score_pc,score_player)
 
-        if ball_x <= 0 :
+        elif ball.x < l_paddle.x:
+            sfx.out.play(loops=0,maxtime=0)
+            time.sleep(0.04)
             score_player += 1
-            ball_x,ball_y = setup_screen(screen,font,ball,l_paddle,r_paddle,score_pc,score_player)
+            setup_screen(score_pc,score_player)
+
+        elif r_paddle.mask.overlap(ball.mask,(x1,y1)):
+            sfx.contact.play(loops=0,maxtime=0)
+            time.sleep(0.04)
+            ball.x_speed = -1*ball.x_speed
+            ball.dy = random.random()+random.randrange(-3,3)
+
+        elif l_paddle.mask.overlap(ball.mask,(x2,y2)):
+            sfx.contact.play(loops=0,maxtime=0)
+            ball.x_speed = -1*ball.x_speed
+            ball.dy = random.random()+random.randrange(-3,3)
+
+        ball.y = ball.y+ball.y_speed*2
+        ball.x = ball.x+ball.x_speed*2
+
 
     return 0
 
-def blit_scores(screen,font,score_pc,score_player):
+def blit_scores(score_pc,score_player):
     text = font.render(str(score_pc),True,(200,0,100))
     screen.blit(text,(157,60))
     text2 = font.render(str(score_player),True,(200,0,100))
     screen.blit(text2,(530,60))
 
-def setup_screen(screen,font,ball,l_paddle,r_paddle,score_pc,score_player):
-    x,y = 800/2-32/2, 600/2-50/2
-    screen.fill((165,200,207),[0,0,800,100])
-    screen.fill((0,0,0),[0,90,800,600])
-    blit_scores(screen,font,score_pc,score_player)
-    ball.render(screen,x,y)
-    l_paddle.render(screen,10,250)
-    r_paddle.render(screen,780,250)
-    name = font.render("PLAYER",True,(200,0,100))
-    pc = font.render("PC",True,(200,0,100))
-    screen.blit(pc,(150,10))
-    screen.blit(name,(500,10))
-    pygame.display.flip()
-    return x,y
+def setup_screen(score_pc,score_player):
+    ball.x,ball.y = 800/2-32/2, 600/2-50/2
+    if notOver(score_pc, score_player):
+        screen.fill((165,200,207),[0,0,800,100])
+        screen.fill((0,0,0),[0,90,800,600])
+        blit_scores(score_pc,score_player)
+        ball.render()
+        l_paddle.render()
+        r_paddle.render()
+        name = font.render("PLAYER",True,(200,0,100))
+        pc = font.render("PC",True,(200,0,100))
+        screen.blit(pc,(150,10))
+        screen.blit(name,(500,10))
+        pygame.display.flip()
+        time.sleep(1)
+
+def notOver(score_pc, score_player):
+    if score_pc == 10:
+        pass
+
+    return True
 
 if __name__ == "__main__":
     sys.exit(main())
