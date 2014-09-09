@@ -224,7 +224,7 @@ def game_over(screen,winner,flag):
     if flag:
         sfx.cheer.play()
     else:
-        sfx.gloat.play()
+        sfx.gloom.play()
 
     pygame.display.flip()
     done = False
