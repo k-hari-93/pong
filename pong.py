@@ -18,6 +18,14 @@ screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Pong")
 
 font = pygame.font.SysFont("Press Start 2P",30,False,False)
+w_font = pygame.font.SysFont("Press Start 2P",100,False,False)
+
+name = font.render("PLAYER",True,(200,0,100))
+pc = font.render("PC",True,(200,0,100))
+
+winner_pc = w_font.render("PC Wins!!! Hit Return To Play Again",True,(255,255,255))
+winner_player = w_font.render("You Win!!! Hit Return To Play Again",True,(255,255,255))
+
 
 clock = pygame.time.Clock()
 
@@ -54,8 +62,13 @@ sfx = SFX()
 
 def main():
 
+    l_flag = 1
+    r_flag = 1
+
     score_pc = 0
     score_player = 0
+
+    #display_start_screen()
 
     setup_screen(score_pc,score_player)
 
@@ -93,48 +106,62 @@ def main():
         else:
             l_paddle.dy = 0
 
+        l_paddle.render()
+        r_paddle.render()
+        ball.render()
+
+        x2,y2 = ball.x - l_paddle.x, ball.y - l_paddle.y
+        x1,y1 = ball.x - r_paddle.x, ball.y - r_paddle.y
+
+        if ball.x > r_paddle.x:
+            r_paddle.dy = 0
+            sfx.out.play(loops=0,maxtime=0)
+            score_pc += 1
+            blit_scores(score_pc,score_player)
+            if not_over(score_pc,score_player):
+                setup_screen(score_pc,score_player)
+
+        elif ball.x < l_paddle.x:
+            l_paddle.dy = 0
+            sfx.out.play(loops=0,maxtime=0)
+            time.sleep(0.04)
+            score_player += 1
+            blit_scores(score_pc,score_player)
+            if not_over(score_pc,score_player):
+                setup_screen(score_pc,score_player)
+
+        elif r_paddle.mask.overlap(ball.mask,(x1,y1)):
+            if r_flag:
+                r_flag = 0
+                l_flag = 1
+                ball.dx = 0
+                ball.dy = 0
+                sfx.contact.play(loops=0,maxtime=0)
+                time.sleep(0.04)
+                ball.x_speed = -1*ball.x_speed
+                ball.dy = random.random()+random.randrange(-3,3)
+
+        elif l_paddle.mask.overlap(ball.mask,(x2,y2)):
+            if l_flag:
+                l_flag = 0
+                r_flag = 1
+                ball.dx = 0
+                ball.dy = 0
+                sfx.contact.play(loops=0,maxtime=0)
+                ball.x_speed = -1*ball.x_speed
+                ball.dy = random.random()+random.randrange(-3,3)
+
         if 100 <= r_paddle.y + r_paddle.dy <= 513:
             r_paddle.y += r_paddle.dy
 
         if 100 <= l_paddle.y + l_paddle.dy <= 513:
             l_paddle.y += l_paddle.dy
 
-        l_paddle.render()
-        r_paddle.render()
-        ball.render()
-
-        clock.tick(100)
-        pygame.display.flip()
-
-        x2,y2 = ball.x - l_paddle.x, ball.y - l_paddle.y
-        x1,y1 = ball.x - r_paddle.x, ball.y - r_paddle.y
-
-
-        if ball.x > r_paddle.x:
-            sfx.out.play(loops=0,maxtime=0)
-            score_pc += 1
-            setup_screen(score_pc,score_player)
-
-        elif ball.x < l_paddle.x:
-            sfx.out.play(loops=0,maxtime=0)
-            time.sleep(0.04)
-            score_player += 1
-            setup_screen(score_pc,score_player)
-
-        elif r_paddle.mask.overlap(ball.mask,(x1,y1)):
-            sfx.contact.play(loops=0,maxtime=0)
-            time.sleep(0.04)
-            ball.x_speed = -1*ball.x_speed
-            ball.dy = random.random()+random.randrange(-3,3)
-
-        elif l_paddle.mask.overlap(ball.mask,(x2,y2)):
-            sfx.contact.play(loops=0,maxtime=0)
-            ball.x_speed = -1*ball.x_speed
-            ball.dy = random.random()+random.randrange(-3,3)
-
         ball.y = ball.y+ball.y_speed*2
         ball.x = ball.x+ball.x_speed*2
 
+        clock.tick(100)
+        pygame.display.flip()
 
     return 0
 
@@ -146,25 +173,25 @@ def blit_scores(score_pc,score_player):
 
 def setup_screen(score_pc,score_player):
     ball.x,ball.y = 800/2-32/2, 600/2-50/2
-    if notOver(score_pc, score_player):
-        screen.fill((165,200,207),[0,0,800,100])
-        screen.fill((0,0,0),[0,90,800,600])
-        blit_scores(score_pc,score_player)
-        ball.render()
-        l_paddle.render()
-        r_paddle.render()
-        name = font.render("PLAYER",True,(200,0,100))
-        pc = font.render("PC",True,(200,0,100))
-        screen.blit(pc,(150,10))
-        screen.blit(name,(500,10))
-        pygame.display.flip()
-        time.sleep(1)
+    screen.fill((165,200,207),[0,0,800,100])
+    screen.fill((0,0,0),[0,90,800,600])
+    ball.render()
+    l_paddle.render()
+    r_paddle.render()
+    screen.blit(pc,(150,10))
+    screen.blit(name,(500,10))
+    pygame.display.flip()
+    time.sleep(1)
 
-def notOver(score_pc, score_player):
+def not_over(score_pc, score_player):
     if score_pc == 10:
-        pass
-
-    return True
+        gameover(winner_pc,0)
+        return False
+    elif score_player == 10:
+        gameover(winner_player,1)
+        return False
+    else:
+        return True
 
 if __name__ == "__main__":
     sys.exit(main())
