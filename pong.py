@@ -107,6 +107,7 @@ def main():
                 sfx.contact.play(loops=0,maxtime=0)
                 time.sleep(0.04)
                 ball.y_speed = ball.y_speed *-1
+                ball.dy = 0
         if ball.y < 100:
             if t_flag:
                 t_flag = 0
@@ -114,18 +115,25 @@ def main():
                 sfx.contact.play(loops=0,maxtime=0)
                 time.sleep(0.04)
                 ball.y_speed = ball.y_speed *-1
-
+                ball.dy = 0
         if ball.x_speed < 0:
-            if l_paddle.y < ball.y :
-                l_paddle.y_speed = 1
-            elif l_paddle.y > ball.y :
-                l_paddle.y_speed = -1
-
-            if l_paddle.dy == 9:
-                if ball.y_speed < 0 and ball.y < l_paddle.y:
-                    l_paddle.y_speed = -1
-                else:
+            if l_paddle.dy > 7:
+                if l_paddle.y + 58 < ball.y:
                     l_paddle.y_speed = 1
+                else:
+                    l_paddle.y_speed = -1
+
+            elif l_paddle.dy > 5:
+                if l_paddle.y + 50 < ball.y:
+                    l_paddle.y_speed = 1
+                else:
+                    l_paddle.y_speed = -1
+
+            else:
+                if l_paddle.y + 40 < ball.y:
+                    l_paddle.y_speed = 1
+                else:
+                    l_paddle.y_speed = -1
 
             if 100 <= l_paddle.y + l_paddle.dy*l_paddle.y_speed <= 523:
                 l_paddle.y += l_paddle.dy*l_paddle.y_speed
@@ -133,7 +141,7 @@ def main():
         if 100 <= r_paddle.y + r_paddle.dy <= 523:
             r_paddle.y += r_paddle.dy
 
-        ball.y = ball.y+ball.y_speed*2+ball.dy
+        ball.y = ball.y+ball.y_speed*2+1.2*ball.dy
         ball.x = ball.x+ball.x_speed*2
 
         l_paddle.render(screen)
@@ -141,7 +149,7 @@ def main():
         ball.render(screen)
 
         x1,y1 = int(ball.x - r_paddle.x), int(ball.y - r_paddle.y)
-        x2,y2 = int(ball.x - l_paddle.x), int(ball.y - l_paddle.y)
+        x2,y2 = int(l_paddle.x - ball.x), int(l_paddle.y - ball.y)
 
         if ball.x > r_paddle.x:
             r_paddle.dy = 0
@@ -174,7 +182,7 @@ def main():
                 ball.x_speed = -1*ball.x_speed
                 ball.dy = random.randrange(0,3)
 
-        elif l_paddle.mask.overlap(ball.mask,(x2,y2)):
+        elif ball.mask.overlap(l_paddle.mask,(x2+5,y2)):
             if l_flag:
                 l_flag = 0
                 r_flag = 1
@@ -184,7 +192,7 @@ def main():
                 ball.x_speed = -1*ball.x_speed
                 ball.dy = random.randrange(0,3)
 
-        clock.tick(60)
+        clock.tick(50)
         pygame.display.flip()
 
     return 0
@@ -272,11 +280,11 @@ def display_start_screen(screen):
 
                 if 50<=x<=160 and 353<=y<=383:
                     ball.x_speed = ball.y_speed = 2.5
-                    l_paddle.dy = 3
+                    l_paddle.dy = 4.3
                     done = True
                 elif 50<=x<=196 and 405<=y<=429:
-                    ball.x_speed = ball.y_speed = 4
-                    l_paddle.dy = 8
+                    ball.x_speed = ball.y_speed = 3.5
+                    l_paddle.dy = 7
                     done = True
                 elif 50<=x<=168 and 453<=y<=479:
                     ball.x_speed = ball.y_speed = 4.5
