@@ -56,7 +56,7 @@ class Image(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
     def render(self,screen):
-        screen.blit(self.image,(self.x+self.dx,self.y+self.dy))
+        screen.blit(self.image,(self.x,self.y))
 
 
 ball = Image("ball.png",0,0)
@@ -103,34 +103,37 @@ def main():
         if ball.y > 580:
             if b_flag:
                 b_flag = 0
-                l_flag = 1
-                r_flag = 1
                 t_flag = 1
                 sfx.contact.play(loops=0,maxtime=0)
                 time.sleep(0.04)
                 ball.y_speed = ball.y_speed *-1
         if ball.y < 100:
             if t_flag:
-                l_flag = 1
-                r_flag = 1
                 t_flag = 0
                 b_flag = 1
                 sfx.contact.play(loops=0,maxtime=0)
                 time.sleep(0.04)
                 ball.y_speed = ball.y_speed *-1
 
-        if l_paddle.y < ball.y :
-            l_paddle.y_speed = 1
-        elif l_paddle.y > ball.y :
-            l_paddle.y_speed = -1
+        if ball.x_speed < 0:
+            if l_paddle.y < ball.y :
+                l_paddle.y_speed = 1
+            elif l_paddle.y > ball.y :
+                l_paddle.y_speed = -1
 
-        if 100 <= l_paddle.y + l_paddle.dy*l_paddle.y_speed <= 523:
-            l_paddle.y += l_paddle.dy*l_paddle.y_speed
+            if l_paddle.dy == 9:
+                if ball.y_speed < 0 and ball.y < l_paddle.y:
+                    l_paddle.y_speed = -1
+                else:
+                    l_paddle.y_speed = 1
+
+            if 100 <= l_paddle.y + l_paddle.dy*l_paddle.y_speed <= 523:
+                l_paddle.y += l_paddle.dy*l_paddle.y_speed
 
         if 100 <= r_paddle.y + r_paddle.dy <= 523:
             r_paddle.y += r_paddle.dy
 
-        ball.y = ball.y+ball.y_speed*2
+        ball.y = ball.y+ball.y_speed*2+ball.dy
         ball.x = ball.x+ball.x_speed*2
 
         l_paddle.render(screen)
@@ -268,16 +271,17 @@ def display_start_screen(screen):
                 x,y = pygame.mouse.get_pos()
 
                 if 50<=x<=160 and 353<=y<=383:
-                    ball.x_speed = ball.y_speed = 2
+                    ball.x_speed = ball.y_speed = 2.5
                     l_paddle.dy = 3
+                    done = True
                 elif 50<=x<=196 and 405<=y<=429:
-                    ball.x_speed = ball.y_speed = 3
-                    l_paddle.dy = 5.5
+                    ball.x_speed = ball.y_speed = 4
+                    l_paddle.dy = 8
+                    done = True
                 elif 50<=x<=168 and 453<=y<=479:
                     ball.x_speed = ball.y_speed = 4.5
-                    l_paddle.dy = 8
-
-                done = True
+                    l_paddle.dy = 9
+                    done = True
 
 if __name__ == "__main__":
     main()
